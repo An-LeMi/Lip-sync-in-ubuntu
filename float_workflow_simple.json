@@ -1,6 +1,6 @@
 {
-  "last_node_id": 8,
-  "last_link_id": 8,
+  "last_node_id": 7,
+  "last_link_id": 7,
   "nodes": [
     {
       "id": 1,
@@ -270,29 +270,6 @@
       },
       "color": "#262626",
       "bgcolor": "#101010"
-    },
-    {
-      "id": 8,
-      "type": "SaveImage",
-      "pos": [2000, 50],
-      "size": [315, 270],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 5
-        }
-      ],
-      "title": "💾 Save Video Frames",
-      "properties": {},
-      "widgets_values": [
-        "FLOAT_LongAudio"
-      ],
-      "color": "#222",
-      "bgcolor": "#000"
     }
   ],
   "links": [
@@ -302,8 +279,7 @@
     [4, 4, 0, 6, 2, "FLOAT_PIPE"],
     [5, 6, 0, 7, 0, "IMAGE"],
     [6, 6, 1, 7, 1, "AUDIO"],
-    [7, 6, 2, 7, 2, "FLOAT"],
-    [8, 6, 0, 8, 0, "IMAGE"]
+    [7, 6, 2, 7, 2, "FLOAT"]
   ],
   "groups": [],
   "config": {},
