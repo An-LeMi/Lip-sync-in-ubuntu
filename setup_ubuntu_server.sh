@@ -11,6 +11,25 @@ echo "║  Ubuntu Server with CUDA Support                          ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 
+# ============================================================================
+# STEP 0: Ensure 16 GB Swap (for large video merges)
+# ============================================================================
+echo "🧠 Step 0: Ensuring 16 GB swap space..."
+if swapon --show | grep -q "/swapfile"; then
+    echo "⚠️  Swapfile already exists, skipping creation."
+else
+    echo "  📦 Creating 16 GB swapfile at /swapfile"
+    sudo fallocate -l 16G /swapfile
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    if ! grep -q "/swapfile" /etc/fstab; then
+        echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab >/dev/null
+    fi
+    echo "  ✅ Swapfile enabled"
+fi
+echo ""
+
 # Configuration
 PYTHON_VERSION="python3.10"
 COMFYUI_DIR="$HOME/ComfyUI"
@@ -728,6 +747,7 @@ echo "    ✅ LoadAudio (ComfyUI built-in)"
 echo "    ✅ AudioFormatConverter (NEW - converts MP4 to WAV)"
 echo "    ✅ LoadFloatModelsOpt (FLOAT_Optimized)"
 echo "    ✅ FloatBatchProcessSimple (NEW - batch processing)"
+echo "    ✅ VHS_VideoCombine (VideoHelperSuite - MP4 output)"
 echo "    ✅ SaveImage (ComfyUI built-in)"
 echo ""
 echo "  📋 Workflow file: float_workflow_simple.json"
@@ -765,7 +785,7 @@ echo "💡 Next steps:"
 echo "  1. Upload workflow: float_workflow_simple.json"
 echo "  2. Upload assets: face image + long audio file"
 echo "  3. Set segment_duration_seconds: 120 (for 12GB VRAM)"
-echo "  4. Click Queue Prompt - processes automatically!"
+echo "  4. Click Queue Prompt - MP4 video generated automatically!"
 echo ""
 echo "📊 Long Audio Processing Features:"
 echo "  ✅ Automatic audio splitting into segments"
@@ -773,5 +793,6 @@ echo "  ✅ Sequential processing (prevents OOM errors)"
 echo "  ✅ Smooth video merging with frame blending"
 echo "  ✅ Works with audio of any length (2min to 30min+)"
 echo "  ✅ Real-time progress tracking in console"
+echo "  ✅ MP4 video saved automatically (VideoHelperSuite)"
 echo ""
 
