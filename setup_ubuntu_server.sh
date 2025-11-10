@@ -2,13 +2,12 @@
 # ComfyUI Setup Script for Ubuntu Server with CUDA
 # Includes FLOAT Batch Processing for Long Audio
 # Author: Updated for long audio processing
-# Date: 2025-11-10
 
 set -e  # Exit on error
 
 echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║  ComfyUI + FLOAT + AdvancedLivePortrait Setup            ║"
-echo "║  Ubuntu Server with CUDA Support                         ║"
+echo "║  ComfyUI + FLOAT + AdvancedLivePortrait Setup             ║"
+echo "║  Ubuntu Server with CUDA Support                          ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -359,6 +358,93 @@ import numpy as np
 from . import main_logger
 
 
+class AudioFormatConverter:
+    """Check audio format and convert MP4 to WAV if needed"""
+    
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "audio": ("AUDIO",),
+                "target_sample_rate": ("INT", {"default": 16000, "min": 8000, "max": 48000, "step": 1000}),
+            },
+        }
+
+    RETURN_TYPES = ("AUDIO", "STRING")
+    RETURN_NAMES = ("audio", "format_info")
+    FUNCTION = "convert_audio"
+    CATEGORY = "FLOAT/Batch"
+    DESCRIPTION = "Check audio format and convert MP4/other formats to WAV if needed"
+    UNIQUE_NAME = "AudioFormatConverter"
+    DISPLAY_NAME = "Audio Format Converter"
+
+    def convert_audio(self, audio, target_sample_rate):
+        """
+        Check if audio is in correct format, convert if needed
+        Handles MP4, MP3, and other formats by converting to WAV
+        """
+        waveform = audio['waveform']
+        sample_rate = audio['sample_rate']
+        
+        # Check current format
+        original_format = "unknown"
+        if hasattr(audio, 'format'):
+            original_format = audio.get('format', 'unknown')
+        
+        main_logger.info(f"Audio input - Sample rate: {sample_rate}Hz, Format: {original_format}")
+        
+        # Resample if needed
+        if sample_rate != target_sample_rate:
+            main_logger.info(f"Resampling from {sample_rate}Hz to {target_sample_rate}Hz")
+            resampler = torchaudio.transforms.Resample(sample_rate, target_sample_rate)
+            
+            # Handle different waveform shapes
+            if len(waveform.shape) == 2:  # (C, N)
+                waveform = resampler(waveform)
+            elif len(waveform.shape) == 3:  # (B, C, N)
+                batch_size = waveform.shape[0]
+                resampled_waveforms = []
+                for i in range(batch_size):
+                    resampled = resampler(waveform[i])
+                    resampled_waveforms.append(resampled)
+                waveform = torch.stack(resampled_waveforms)
+            else:
+                main_logger.warning(f"Unexpected waveform shape: {waveform.shape}, skipping resample")
+            
+            sample_rate = target_sample_rate
+        
+        # Ensure audio is in correct format for FLOAT processing
+        # FLOAT typically expects mono or stereo at 16kHz
+        if len(waveform.shape) == 3 and waveform.shape[0] > 1:
+            # Multiple batches, take first
+            waveform = waveform[0:1]
+            main_logger.info("Using first batch from multi-batch audio")
+        
+        # Convert to stereo if mono (FLOAT works better with stereo)
+        if len(waveform.shape) == 2:
+            # (C, N) format
+            if waveform.shape[0] == 1:
+                # Mono, convert to stereo
+                waveform = torch.cat([waveform, waveform], dim=0)
+                main_logger.info("Converted mono to stereo")
+        elif len(waveform.shape) == 3:
+            # (B, C, N) format
+            if waveform.shape[1] == 1:
+                # Mono, convert to stereo
+                waveform = torch.cat([waveform, waveform], dim=1)
+                main_logger.info("Converted mono to stereo")
+        
+        output_audio = {
+            'waveform': waveform,
+            'sample_rate': sample_rate
+        }
+        
+        format_info = f"Converted to WAV format, {sample_rate}Hz, {waveform.shape}"
+        main_logger.info(format_info)
+        
+        return (output_audio, format_info)
+
+
 class AudioSplitter:
     """Split long audio into segments for batch processing"""
     
@@ -493,11 +579,13 @@ class VideoSegmentMerger:
 
 # Node registration
 NODE_CLASS_MAPPINGS = {
+    "AudioFormatConverter": AudioFormatConverter,
     "AudioSplitter": AudioSplitter,
     "VideoSegmentMerger": VideoSegmentMerger,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "AudioFormatConverter": "Audio Format Converter",
     "AudioSplitter": "Audio Splitter",
     "VideoSegmentMerger": "Video Segment Merger",
 }
@@ -637,12 +725,14 @@ echo "  🔍 Verifying workflow requirements..."
 echo "  Required nodes for long audio processing:"
 echo "    ✅ LoadImage (ComfyUI built-in)"
 echo "    ✅ LoadAudio (ComfyUI built-in)"
+echo "    ✅ AudioFormatConverter (NEW - converts MP4 to WAV)"
 echo "    ✅ LoadFloatModelsOpt (FLOAT_Optimized)"
 echo "    ✅ FloatBatchProcessSimple (NEW - batch processing)"
 echo "    ✅ SaveImage (ComfyUI built-in)"
 echo ""
 echo "  📋 Workflow file: float_workflow_simple.json"
-echo "     - Uses FloatBatchProcessSimple for automatic long audio handling"
+echo "     - AudioFormatConverter: Converts MP4/MP3 to WAV, resamples to 16kHz"
+echo "     - FloatBatchProcessSimple: Automatic long audio handling"
 echo "     - Automatically splits audio into segments"
 echo "     - Processes each segment separately (prevents OOM)"
 echo "     - Merges with smooth transitions"
