@@ -1,6 +1,6 @@
 {
-  "last_node_id": 6,
-  "last_link_id": 6,
+  "last_node_id": 8,
+  "last_link_id": 8,
   "nodes": [
     {
       "id": 1,
@@ -12,10 +12,10 @@
       "mode": 0,
       "title": "🎬 FLOAT Long Audio - Easy Mode",
       "properties": {
-        "text": "# Welcome! Process long audio easily!\n\nJust 3 steps:\n1. Load your face image (512x512 best)\n2. Load your long audio (any length!)\n3. Click Queue Prompt\n\nAdjust segment_duration_seconds:\n- 6GB VRAM: 60-90 seconds\n- 8GB VRAM: 90-120 seconds\n- 12GB+ VRAM: 120-180 seconds\n\nNo crashes, automatic processing!"
+        "text": "# Welcome! Process long audio easily!\n\nJust 3 steps:\n1. Load your face image (512x512 best)\n2. Load your long audio (MP4 or WAV!)\n3. Click Queue Prompt\n\nAudio Format Converter:\n- Automatically converts MP4 to WAV\n- Resamples to 16kHz if needed\n- Handles mono/stereo conversion\n\nAdjust segment_duration_seconds:\n- 6GB VRAM: 60-90 seconds\n- 8GB VRAM: 90-120 seconds\n- 12GB+ VRAM: 120-180 seconds\n\nNo crashes, automatic processing!"
       },
       "widgets_values": [
-        "# Welcome! Process long audio easily!\n\nJust 3 steps:\n1. Load your face image (512x512 best)\n2. Load your long audio (any length!)\n3. Click Queue Prompt\n\nAdjust segment_duration_seconds:\n- 6GB VRAM: 60-90 seconds\n- 8GB VRAM: 90-120 seconds\n- 12GB+ VRAM: 120-180 seconds\n\nNo crashes, automatic processing!"
+        "# Welcome! Process long audio easily!\n\nJust 3 steps:\n1. Load your face image (512x512 best)\n2. Load your long audio (MP4 or WAV!)\n3. Click Queue Prompt\n\nAudio Format Converter:\n- Automatically converts MP4 to WAV\n- Resamples to 16kHz if needed\n- Handles mono/stereo conversion\n\nAdjust segment_duration_seconds:\n- 6GB VRAM: 60-90 seconds\n- 8GB VRAM: 90-120 seconds\n- 12GB+ VRAM: 120-180 seconds\n\nNo crashes, automatic processing!"
       ],
       "color": "#432",
       "bgcolor": "#653"
@@ -68,7 +68,7 @@
           "slot_index": 0
         }
       ],
-      "title": "🎵 Step 2: Load Long Audio",
+      "title": "🎵 Step 2: Load Audio (MP4 or WAV)",
       "properties": {
         "Node name for S&R": "LoadAudio"
       },
@@ -92,7 +92,7 @@
         {
           "name": "float_pipe",
           "type": "FLOAT_PIPE",
-          "links": [3],
+          "links": [4],
           "slot_index": 0
         }
       ],
@@ -110,11 +110,50 @@
     },
     {
       "id": 5,
-      "type": "FloatBatchProcessSimple",
-      "pos": [870, 50],
-      "size": [380, 450],
+      "type": "AudioFormatConverter",
+      "pos": [870, 400],
+      "size": [315, 100],
       "flags": {},
       "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [3],
+          "slot_index": 0
+        },
+        {
+          "name": "format_info",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "title": "🔄 Audio Format Converter",
+      "properties": {
+        "Node name for S&R": "AudioFormatConverter"
+      },
+      "widgets_values": [
+        16000
+      ],
+      "color": "#3a4b5c",
+      "bgcolor": "#4f6578"
+    },
+    {
+      "id": 6,
+      "type": "FloatBatchProcessSimple",
+      "pos": [1240, 50],
+      "size": [380, 450],
+      "flags": {},
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
@@ -125,31 +164,31 @@
         {
           "name": "ref_audio",
           "type": "AUDIO",
-          "link": 2
+          "link": 3
         },
         {
           "name": "float_pipe",
           "type": "FLOAT_PIPE",
-          "link": 3
+          "link": 4
         }
       ],
       "outputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "links": [4],
+          "links": [5],
           "slot_index": 0
         },
         {
           "name": "ref_audio",
           "type": "AUDIO",
-          "links": [5],
+          "links": [6],
           "slot_index": 1
         },
         {
           "name": "fps",
           "type": "FLOAT",
-          "links": [6],
+          "links": [7],
           "slot_index": 2
         },
         {
@@ -177,18 +216,74 @@
       "bgcolor": "#3f8159"
     },
     {
-      "id": 6,
-      "type": "SaveImage",
-      "pos": [1300, 50],
-      "size": [315, 270],
+      "id": 7,
+      "type": "VHS_VideoCombine",
+      "pos": [1670, 50],
+      "size": [315, 600],
       "flags": {},
-      "order": 5,
+      "order": 6,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 4
+          "link": 5
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 6
+        },
+        {
+          "name": "frame_rate",
+          "type": "FLOAT",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Filenames",
+          "type": "VHS_FILENAMES",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "title": "🎞️ Save Video (MP4)",
+      "properties": {
+        "Node name for S&R": "VHS_VideoCombine"
+      },
+      "widgets_values": {
+        "frame_rate": 25,
+        "loop_count": 0,
+        "filename_prefix": "FLOAT_LongAudio",
+        "format": "video/h264-mp4",
+        "pix_fmt": "yuv420p",
+        "crf": 19,
+        "save_metadata": true,
+        "pingpong": false,
+        "save_output": true,
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {}
+        }
+      },
+      "color": "#262626",
+      "bgcolor": "#101010"
+    },
+    {
+      "id": 8,
+      "type": "SaveImage",
+      "pos": [2000, 50],
+      "size": [315, 270],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 5
         }
       ],
       "title": "💾 Save Video Frames",
@@ -201,12 +296,14 @@
     }
   ],
   "links": [
-    [1, 2, 0, 5, 0, "IMAGE"],
-    [2, 3, 0, 5, 1, "AUDIO"],
-    [3, 4, 0, 5, 2, "FLOAT_PIPE"],
-    [4, 5, 0, 6, 0, "IMAGE"],
-    [5, 5, 1, null, null, "AUDIO"],
-    [6, 5, 2, null, null, "FLOAT"]
+    [1, 2, 0, 6, 0, "IMAGE"],
+    [2, 3, 0, 5, 0, "AUDIO"],
+    [3, 5, 0, 6, 1, "AUDIO"],
+    [4, 4, 0, 6, 2, "FLOAT_PIPE"],
+    [5, 6, 0, 7, 0, "IMAGE"],
+    [6, 6, 1, 7, 1, "AUDIO"],
+    [7, 6, 2, 7, 2, "FLOAT"],
+    [8, 6, 0, 8, 0, "IMAGE"]
   ],
   "groups": [],
   "config": {},
@@ -218,4 +315,3 @@
   },
   "version": 0.4
 }
-
