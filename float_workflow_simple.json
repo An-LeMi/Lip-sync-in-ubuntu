@@ -1,0 +1,221 @@
+{
+  "last_node_id": 6,
+  "last_link_id": 6,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Note",
+      "pos": [50, 50],
+      "size": [400, 240],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🎬 FLOAT Long Audio - Easy Mode",
+      "properties": {
+        "text": "# Welcome! Process long audio easily!\n\nJust 3 steps:\n1. Load your face image (512x512 best)\n2. Load your long audio (any length!)\n3. Click Queue Prompt\n\nAdjust segment_duration_seconds:\n- 6GB VRAM: 60-90 seconds\n- 8GB VRAM: 90-120 seconds\n- 12GB+ VRAM: 120-180 seconds\n\nNo crashes, automatic processing!"
+      },
+      "widgets_values": [
+        "# Welcome! Process long audio easily!\n\nJust 3 steps:\n1. Load your face image (512x512 best)\n2. Load your long audio (any length!)\n3. Click Queue Prompt\n\nAdjust segment_duration_seconds:\n- 6GB VRAM: 60-90 seconds\n- 8GB VRAM: 90-120 seconds\n- 12GB+ VRAM: 120-180 seconds\n\nNo crashes, automatic processing!"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 2,
+      "type": "LoadImage",
+      "pos": [500, 50],
+      "size": [315, 314],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [1],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "title": "📸 Step 1: Load Face Image",
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "your_face.jpg",
+        "image"
+      ],
+      "color": "#233",
+      "bgcolor": "#355"
+    },
+    {
+      "id": 3,
+      "type": "LoadAudio",
+      "pos": [500, 400],
+      "size": [315, 136],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [2],
+          "slot_index": 0
+        }
+      ],
+      "title": "🎵 Step 2: Load Long Audio",
+      "properties": {
+        "Node name for S&R": "LoadAudio"
+      },
+      "widgets_values": [
+        "your_audio.wav",
+        null,
+        null
+      ],
+      "color": "#233",
+      "bgcolor": "#355"
+    },
+    {
+      "id": 4,
+      "type": "LoadFloatModelsOpt",
+      "pos": [500, 570],
+      "size": [315, 106],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "float_pipe",
+          "type": "FLOAT_PIPE",
+          "links": [3],
+          "slot_index": 0
+        }
+      ],
+      "title": "🔧 Load FLOAT Model",
+      "properties": {
+        "Node name for S&R": "LoadFloatModelsOpt"
+      },
+      "widgets_values": [
+        "FLOAT.safetensors",
+        "cuda",
+        false
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 5,
+      "type": "FloatBatchProcessSimple",
+      "pos": [870, 50],
+      "size": [380, 450],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "ref_image",
+          "type": "IMAGE",
+          "link": 1
+        },
+        {
+          "name": "ref_audio",
+          "type": "AUDIO",
+          "link": 2
+        },
+        {
+          "name": "float_pipe",
+          "type": "FLOAT_PIPE",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [4],
+          "slot_index": 0
+        },
+        {
+          "name": "ref_audio",
+          "type": "AUDIO",
+          "links": [5],
+          "slot_index": 1
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "links": [6],
+          "slot_index": 2
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 3
+        }
+      ],
+      "title": "🚀 FLOAT Batch Process - ALL IN ONE!",
+      "properties": {
+        "Node name for S&R": "FloatBatchProcessSimple"
+      },
+      "widgets_values": [
+        25,
+        120,
+        10,
+        2.0,
+        1.0,
+        "none",
+        true,
+        15
+      ],
+      "color": "#2a6b3f",
+      "bgcolor": "#3f8159"
+    },
+    {
+      "id": 6,
+      "type": "SaveImage",
+      "pos": [1300, 50],
+      "size": [315, 270],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 4
+        }
+      ],
+      "title": "💾 Save Video Frames",
+      "properties": {},
+      "widgets_values": [
+        "FLOAT_LongAudio"
+      ],
+      "color": "#222",
+      "bgcolor": "#000"
+    }
+  ],
+  "links": [
+    [1, 2, 0, 5, 0, "IMAGE"],
+    [2, 3, 0, 5, 1, "AUDIO"],
+    [3, 4, 0, 5, 2, "FLOAT_PIPE"],
+    [4, 5, 0, 6, 0, "IMAGE"],
+    [5, 5, 1, null, null, "AUDIO"],
+    [6, 5, 2, null, null, "FLOAT"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.85,
+      "offset": [0, 0]
+    }
+  },
+  "version": 0.4
+}
+
